@@ -1,21 +1,18 @@
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
-
-type WaterInfo = {
-  image: string;
-  customer_code: string;
-  measure_datetime: string;
-  mesure_type: 'WATER' | 'GAS';
-};
+import { UploadService, WaterInfo } from './services/update.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   @Post()
   async upload(@Body() waterInfo: WaterInfo, @Res() res: Response) {
-    res.status(HttpStatus.OK).json(waterInfo);
+    res.status(HttpStatus.OK).json(await this.uploadService.update(waterInfo));
   }
 
   @Get()
