@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
-import { UploadService, WaterInfo } from './services/update.service';
+import { UploadService, WaterInfo } from './services/upload.service';
 
 @Controller()
 export class AppController {

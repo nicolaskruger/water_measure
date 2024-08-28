@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UploadService } from './services/update.service';
+import { UploadService } from './services/upload.service';
 
 @Module({
   imports: [],
