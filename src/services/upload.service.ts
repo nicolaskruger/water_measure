@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import * as moment from 'moment';
+import { CustomerRepository } from 'src/repository/customer.repository';
+
+export type MeasureType = 'WATER' | 'GAS';
 
 export type WaterInfo = {
   image: string;
   customer_code: string;
   measure_datetime: string;
-  mesure_type: 'WATER' | 'GAS';
+  measure_type: MeasureType;
 };
 
 export type WaterResponse = {
@@ -30,10 +34,26 @@ function isBase64(str: string) {
   }
 }
 
+function isDateTime(date: string) {
+  return moment(
+    date,
+    [moment.ISO_8601, 'MM/DD/YYYY  :)  HH*mm*ss'],
+    true,
+  ).isValid();
+}
+
+function isMeasureType(measure_type: MeasureType) {
+  return (['WATER', 'GAS'] as MeasureType[]).includes(measure_type);
+}
+
 @Injectable()
 export class UploadService {
+  private readonly customerRepository: CustomerRepository;
+  constructor(customerRepository: CustomerRepository) {
+    this.customerRepository = customerRepository;
+  }
   private validadeInfo(info: WaterInfo) {
-    const { image } = info;
+    const { image, measure_datetime, measure_type } = info;
 
     const error: ErrorInfo = {
       error_description: '',
@@ -41,13 +61,27 @@ export class UploadService {
       error_code: 'INVALID_DATA',
     };
 
-    if (!isBase64(image)) {
-      error.error_description = 'invalid image format';
-      throw error;
-    }
+    (
+      [
+        [isBase64(image), 'invalid image format'],
+        [isDateTime(measure_datetime), 'invalid measure datetime'],
+        [isMeasureType(measure_type), 'invalid measure type'],
+      ] as [boolean, string][]
+    ).forEach(([valid, msg]) => {
+      if (!valid) {
+        error.error_description = msg;
+        throw error;
+      }
+    });
+  }
+  private async checkCustomer(code: string) {
+    const has = await this.customerRepository.has(code);
+    if (has) await this.customerRepository.create(code);
   }
   async update(info: WaterInfo): Promise<WaterResponse> {
     this.validadeInfo(info);
+    const { customer_code } = info;
+    await this.checkCustomer(customer_code);
     return {
       image_url: 'url',
       measure_value: 10,
