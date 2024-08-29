@@ -49,4 +49,12 @@ export class MeasureRepository {
       measure_uuid: result.measure_uuid,
     };
   }
+
+  public async has(measure_uuid: string) {
+    return (await this.repo.findOne({ where: { measure_uuid } })) !== null;
+  }
+
+  public async findById(measure_uuid: string) {
+    return await this.repo.findOne({ where: { measure_uuid } });
+  }
 }

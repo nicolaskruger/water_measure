@@ -19,7 +19,11 @@ export type WaterResponse = {
 };
 
 export type ErrorInfo = {
-  error_code: 'INVALID_DATA' | 'DOUBLE_REPORT';
+  error_code:
+    | 'INVALID_DATA'
+    | 'DOUBLE_REPORT'
+    | 'MEASURE_NOT_FOUND'
+    | 'CONFIRMATION_DUPLICATE';
   error_description: string;
   code: number;
 };
@@ -47,6 +51,20 @@ function isMeasureType(measure_type: MeasureType) {
   return (['WATER', 'GAS'] as MeasureType[]).includes(measure_type);
 }
 
+export function valiData(...valiDatas: [boolean, string][]) {
+  const error: ErrorInfo = {
+    error_description: '',
+    code: 400,
+    error_code: 'INVALID_DATA',
+  };
+  valiDatas.forEach(([valid, msg]) => {
+    if (!valid) {
+      error.error_description = msg;
+      throw error;
+    }
+  });
+}
+
 @Injectable()
 export class UploadService {
   private readonly customerRepository: CustomerRepository;
@@ -61,24 +79,11 @@ export class UploadService {
   private validadeInfo(info: WaterInfo) {
     const { image, measure_datetime, measure_type } = info;
 
-    const error: ErrorInfo = {
-      error_description: '',
-      code: 400,
-      error_code: 'INVALID_DATA',
-    };
-
-    (
-      [
-        [isBase64(image), 'invalid image format'],
-        [isDateTime(measure_datetime), 'invalid measure datetime'],
-        [isMeasureType(measure_type), 'invalid measure type'],
-      ] as [boolean, string][]
-    ).forEach(([valid, msg]) => {
-      if (!valid) {
-        error.error_description = msg;
-        throw error;
-      }
-    });
+    valiData(
+      [isBase64(image), 'invalid image format'],
+      [isDateTime(measure_datetime), 'invalid measure datetime'],
+      [isMeasureType(measure_type), 'invalid measure type'],
+    );
   }
   private async checkCustomer(code: string) {
     const has = await this.customerRepository.has(code);
