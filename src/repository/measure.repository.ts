@@ -57,4 +57,9 @@ export class MeasureRepository {
   public async findById(measure_uuid: string) {
     return await this.repo.findOne({ where: { measure_uuid } });
   }
+
+  public async confirm(measure: MeasureEntity) {
+    measure.has_confirmed = true;
+    await this.repo.save(measure);
+  }
 }

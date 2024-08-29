@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MeasureRepository } from 'src/repository/measure.repository';
+import { MeasureRepository } from '../repository/measure.repository';
 import { ErrorInfo, valiData } from './upload.service';
 
 export type Confirme = {
@@ -33,6 +33,7 @@ export class ConfirmService {
         error_code: 'CONFIRMATION_DUPLICATE',
         error_description: 'confirmation duplicate',
       } as ErrorInfo;
+    this.measureRepository.confirm(measure);
   }
 
   async confirm(conf: Partial<Confirme>): Promise<ConfirmeResponse> {
