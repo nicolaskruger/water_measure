@@ -16,7 +16,6 @@ export class AppController {
       const measure = await this.uploadService.update(waterInfo);
       return res.status(200).json(measure);
     } catch (error) {
-      console.log(error);
       const { code, ...info } = error as ErrorInfo;
       return res.status(code).json(info);
     }
