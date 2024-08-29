@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
-import { CustomerRepository } from 'src/repository/customer.repository';
+import { CustomerRepository } from '../repository/customer.repository';
+import { MeasureRepository } from '../repository/measure.repository';
 
 export type MeasureType = 'WATER' | 'GAS';
 
@@ -49,8 +50,13 @@ function isMeasureType(measure_type: MeasureType) {
 @Injectable()
 export class UploadService {
   private readonly customerRepository: CustomerRepository;
-  constructor(customerRepository: CustomerRepository) {
+  private readonly measureRepository: MeasureRepository;
+  constructor(
+    customerRepository: CustomerRepository,
+    measureRepository: MeasureRepository,
+  ) {
     this.customerRepository = customerRepository;
+    this.measureRepository = measureRepository;
   }
   private validadeInfo(info: WaterInfo) {
     const { image, measure_datetime, measure_type } = info;
@@ -78,14 +84,31 @@ export class UploadService {
     const has = await this.customerRepository.has(code);
     if (has) await this.customerRepository.create(code);
   }
+  private async checkMeasure(info: WaterInfo) {
+    const doubleReport = await this.measureRepository.isDoubleReport(info);
+    if (doubleReport)
+      throw {
+        code: 409,
+        error_code: 'DOUBLE_REPORT',
+        error_description: '"Leitura do mês já realizada',
+      } as ErrorInfo;
+  }
+
+  private async createMeasure(info: WaterInfo): Promise<WaterResponse> {
+    const measure = await this.measureRepository.measure(info.image);
+    const { image_url } = measure;
+
+    const response = await this.measureRepository.create({
+      image_url,
+      ...info,
+    });
+    return { ...measure, ...response };
+  }
   async update(info: WaterInfo): Promise<WaterResponse> {
     this.validadeInfo(info);
     const { customer_code } = info;
     await this.checkCustomer(customer_code);
-    return {
-      image_url: 'url',
-      measure_value: 10,
-      measure_uuid: '123',
-    };
+    await this.checkMeasure(info);
+    return await this.createMeasure(info);
   }
 }
