@@ -82,7 +82,7 @@ export class UploadService {
   }
   private async checkCustomer(code: string) {
     const has = await this.customerRepository.has(code);
-    if (has) await this.customerRepository.create(code);
+    if (!has) await this.customerRepository.create(code);
   }
   private async checkMeasure(info: WaterInfo) {
     const doubleReport = await this.measureRepository.isDoubleReport(info);
@@ -90,7 +90,7 @@ export class UploadService {
       throw {
         code: 409,
         error_code: 'DOUBLE_REPORT',
-        error_description: '"Leitura do mês já realizada',
+        error_description: 'Leitura do mês já realizada',
       } as ErrorInfo;
   }
 

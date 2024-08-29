@@ -85,15 +85,15 @@ describe('update service', () => {
   });
 
   test('call create customer', async () => {
-    mockCustomerRepository.has.mockReturnValue(new Promise((res) => res(true)));
+    mockCustomerRepository.has.mockReturnValue(
+      new Promise((res) => res(false)),
+    );
     await updateService.update(validInfo);
     expect(mockCustomerRepository.create.mock.calls.length).toBe(1);
   });
 
   test('not call create customer', async () => {
-    mockCustomerRepository.has.mockReturnValue(
-      new Promise((res) => res(false)),
-    );
+    mockCustomerRepository.has.mockReturnValue(new Promise((res) => res(true)));
     await updateService.update(validInfo);
     expect(mockCustomerRepository.create.mock.calls.length).toBe(0);
   });
@@ -109,7 +109,7 @@ describe('update service', () => {
       expect(error).toStrictEqual({
         code: 409,
         error_code: 'DOUBLE_REPORT',
-        error_description: '"Leitura do mês já realizada',
+        error_description: 'Leitura do mês já realizada',
       });
     }
   });
