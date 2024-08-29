@@ -1,7 +1,7 @@
-import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
-import { UploadService, WaterInfo } from './services/upload.service';
+import { ErrorInfo, UploadService, WaterInfo } from './services/upload.service';
 
 @Controller()
 export class AppController {
@@ -12,7 +12,14 @@ export class AppController {
 
   @Post()
   async upload(@Body() waterInfo: WaterInfo, @Res() res: Response) {
-    res.status(HttpStatus.OK).json(await this.uploadService.update(waterInfo));
+    try {
+      const measure = await this.uploadService.update(waterInfo);
+      return res.status(200).json(measure);
+    } catch (error) {
+      console.log(error);
+      const { code, ...info } = error as ErrorInfo;
+      return res.status(code).json(info);
+    }
   }
 
   @Get()

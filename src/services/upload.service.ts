@@ -25,12 +25,12 @@ export type ErrorInfo = {
 };
 
 function isBase64(str: string) {
-  if (str === '' || str.trim() === '') {
+  if (typeof str !== 'string' || str === '' || str.trim() === '') {
     return false;
   }
   try {
     return btoa(atob(str)) == str;
-  } catch (error) {
+  } catch (_) {
     return false;
   }
 }
