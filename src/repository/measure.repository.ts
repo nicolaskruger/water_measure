@@ -4,6 +4,8 @@ import { WaterInfo, WaterResponse } from '../services/upload.service';
 import { DataSource, Like, Repository } from 'typeorm';
 import { ListMeasureQuery } from 'src/services/list-measure.service';
 import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleAIFileManager } from '@google/generative-ai/server';
+import * as fs from 'fs';
 
 export type Measure = Pick<WaterResponse, 'image_url' | 'measure_value'>;
 
@@ -24,11 +26,13 @@ const prompt =
 export class MeasureRepository {
   private repo: Repository<MeasureEntity>;
   private model: GenerativeModel;
+  private fileManager: GoogleAIFileManager;
   constructor(@Inject() dataSource: DataSource) {
     this.repo = dataSource.getRepository(MeasureEntity);
     this.model = new GoogleGenerativeAI(
       process.env.GEMINI_API_KEY,
     ).getGenerativeModel({ model: 'gemini-1.5-flash' });
+    this.fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
   }
   public async isDoubleReport({
     customer_code,
@@ -45,15 +49,32 @@ export class MeasureRepository {
     });
     return length >= 1;
   }
+  private base64ToFile(base64: string): string {
+    const bstr = atob(base64);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    const path = `./bucket/${Math.random()}.png`;
+
+    fs.writeFileSync(path, u8arr);
+
+    return path;
+  }
   public async measure(image: string) {
     const generateContent = await this.model.generateContent([
       prompt,
       { inlineData: { data: image, mimeType: 'image/png' } },
     ]);
+    const path = this.base64ToFile(image);
+    const uploadResponse = await this.fileManager.uploadFile(path, {
+      mimeType: 'image/png',
+    });
     let measure_value = Math.floor(Number(generateContent.response.text()));
     if (isNaN(measure_value)) measure_value = 0;
-    console.log(generateContent.response.text());
-    return { image_url: '', measure_value } as Measure;
+    return { image_url: uploadResponse.file.uri, measure_value } as Measure;
   }
 
   public async create(
