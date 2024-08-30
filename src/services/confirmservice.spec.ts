@@ -36,6 +36,18 @@ describe('confirm', () => {
       } as ErrorInfo);
     }
   });
+  test('miss uuid', async () => {
+    try {
+      await confirmService.confirm({ confirmed_value: -1 });
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toStrictEqual({
+        code: 400,
+        error_code: 'INVALID_DATA',
+        error_description: 'confirmed value is negative',
+      } as ErrorInfo);
+    }
+  });
   test("don't has this measure", async () => {
     try {
       mockRepo.has.mockReturnValue(new Promise((res) => res(false)));
@@ -75,7 +87,10 @@ describe('confirm', () => {
       );
       await confirmService.confirm({ confirmed_value: 1, measure_uuid: 'has' });
       const [[measure]] = mockRepo.confirm.mock.calls;
-      expect(measure).toStrictEqual({ has_confirmed: false });
+      expect(measure).toStrictEqual({
+        has_confirmed: false,
+        measure_value: 1,
+      } as MeasureEntity);
     } catch (error) {
       expect(true).toBe(false);
     }

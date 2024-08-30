@@ -33,6 +33,7 @@ export class ConfirmService {
         error_code: 'CONFIRMATION_DUPLICATE',
         error_description: 'confirmation duplicate',
       } as ErrorInfo;
+    measure.measure_value = conf.confirmed_value;
     this.measureRepository.confirm(measure);
   }
 
@@ -43,6 +44,7 @@ export class ConfirmService {
         Number.isInteger(conf.confirmed_value),
         'confirmed value is not an integer',
       ],
+      [conf.confirmed_value > 0, 'confirmed value is negative'],
       [!!conf.measure_uuid, 'miss measure uuid'],
     );
     await this.checkMeasure(measure_uuid);

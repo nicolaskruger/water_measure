@@ -13,6 +13,8 @@ export class MeasureEntity {
   has_confirmed: boolean;
   @Column()
   image_url: string;
+  @Column()
+  measure_value: number;
   @ManyToOne(() => CustomerEntity, (customer) => customer.measures)
   customer: CustomerEntity;
 }

@@ -9,7 +9,6 @@ const exe = async <T>(func: () => Promise<T>, res: Response) => {
     const result = await func();
     return res.status(200).json(result);
   } catch (error) {
-    console.log(error);
     const { code, ...info } = error as ErrorInfo;
     return res.status(code).json(info);
   }

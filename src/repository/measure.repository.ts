@@ -8,7 +8,8 @@ export type Measure = Pick<WaterResponse, 'image_url' | 'measure_value'>;
 export type MeasureCreate = Pick<
   WaterInfo,
   'measure_datetime' | 'measure_type' | 'customer_code'
-> & { image_url: string };
+> &
+  Measure;
 
 export class MeasureRepository {
   private repo: Repository<MeasureEntity>;

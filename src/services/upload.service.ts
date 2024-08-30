@@ -101,10 +101,9 @@ export class UploadService {
 
   private async createMeasure(info: WaterInfo): Promise<WaterResponse> {
     const measure = await this.measureRepository.measure(info.image);
-    const { image_url } = measure;
 
     const response = await this.measureRepository.create({
-      image_url,
+      ...measure,
       ...info,
     });
     return { ...measure, ...response };
