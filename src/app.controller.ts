@@ -1,8 +1,23 @@
-import { Body, Controller, Get, Patch, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
-import { ErrorInfo, UploadService, WaterInfo } from './services/upload.service';
+import {
+  ErrorInfo,
+  MeasureType,
+  UploadService,
+  WaterInfo,
+} from './services/upload.service';
 import { Confirme, ConfirmService } from './services/confirm.service';
+import { ListMeasureService } from './services/list-measure.service';
 
 const exe = async <T>(func: () => Promise<T>, res: Response) => {
   try {
@@ -20,6 +35,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly uploadService: UploadService,
     private readonly confirmeService: ConfirmService,
+    private readonly listService: ListMeasureService,
   ) {}
 
   @Post('/upload')
@@ -30,6 +46,15 @@ export class AppController {
   @Patch('/confirm')
   async confirm(@Body() conf: Confirme, @Res() res: Response) {
     exe(() => this.confirmeService.confirm(conf), res);
+  }
+
+  @Get('/:customer_code/list')
+  async list(
+    @Param('customer_code') customer_code: string,
+    @Res() res: Response,
+    @Query('measure_type') measure_type?: MeasureType,
+  ) {
+    exe(() => this.listService.list({ customer_code, measure_type }), res);
   }
   @Get()
   getHello(): string {

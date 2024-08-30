@@ -23,7 +23,8 @@ export type ErrorInfo = {
     | 'INVALID_DATA'
     | 'DOUBLE_REPORT'
     | 'MEASURE_NOT_FOUND'
-    | 'CONFIRMATION_DUPLICATE';
+    | 'CONFIRMATION_DUPLICATE'
+    | 'MEASURES_NOT_FOUND';
   error_description: string;
   code: number;
 };

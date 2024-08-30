@@ -2,6 +2,7 @@ import { Inject } from '@nestjs/common';
 import { MeasureEntity } from '../entity/measure.entity';
 import { WaterInfo, WaterResponse } from '../services/upload.service';
 import { DataSource, Like, Repository } from 'typeorm';
+import { ListMeasureQuery } from 'src/services/list-measure.service';
 
 export type Measure = Pick<WaterResponse, 'image_url' | 'measure_value'>;
 
@@ -10,6 +11,11 @@ export type MeasureCreate = Pick<
   'measure_datetime' | 'measure_type' | 'customer_code'
 > &
   Measure;
+
+export type ListMeasureResponse = {
+  customer_code: string;
+  measures: MeasureEntity[];
+};
 
 export class MeasureRepository {
   private repo: Repository<MeasureEntity>;
@@ -62,5 +68,25 @@ export class MeasureRepository {
   public async confirm(measure: MeasureEntity) {
     measure.has_confirmed = true;
     await this.repo.save(measure);
+  }
+
+  public async findByCustomerCode(
+    query: ListMeasureQuery,
+  ): Promise<ListMeasureResponse> {
+    const { measure_type, customer_code } = query;
+    let measures: MeasureEntity[] = [];
+    if (measure_type) {
+      measures = await this.repo.find({
+        where: { customer: { customer_code }, measure_type },
+      });
+    } else {
+      measures = await this.repo.find({
+        where: { customer: { customer_code } },
+      });
+    }
+    return {
+      customer_code,
+      measures,
+    };
   }
 }

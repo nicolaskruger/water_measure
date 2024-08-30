@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CustomerEntity } from './entity/customer.entiry';
 import { MeasureEntity } from './entity/measure.entity';
 import { ConfirmService } from './services/confirm.service';
+import { ListMeasureService } from './services/list-measure.service';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ConfirmService } from './services/confirm.service';
     CustomerRepository,
     MeasureRepository,
     ConfirmService,
+    ListMeasureService,
   ],
 })
 export class AppModule {}
