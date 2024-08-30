@@ -3,6 +3,7 @@ import { MeasureEntity } from '../entity/measure.entity';
 import { WaterInfo, WaterResponse } from '../services/upload.service';
 import { DataSource, Like, Repository } from 'typeorm';
 import { ListMeasureQuery } from 'src/services/list-measure.service';
+import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 
 export type Measure = Pick<WaterResponse, 'image_url' | 'measure_value'>;
 
@@ -17,10 +18,17 @@ export type ListMeasureResponse = {
   measures: MeasureEntity[];
 };
 
+const prompt =
+  "give me the water measure, if the value can't be found return 0";
+
 export class MeasureRepository {
   private repo: Repository<MeasureEntity>;
+  private model: GenerativeModel;
   constructor(@Inject() dataSource: DataSource) {
     this.repo = dataSource.getRepository(MeasureEntity);
+    this.model = new GoogleGenerativeAI(
+      process.env.GEMINI_API_KEY,
+    ).getGenerativeModel({ model: 'gemini-1.5-flash' });
   }
   public async isDoubleReport({
     customer_code,
@@ -38,7 +46,14 @@ export class MeasureRepository {
     return length >= 1;
   }
   public async measure(image: string) {
-    return { image_url: '', measure_value: 0 } as Measure;
+    const generateContent = await this.model.generateContent([
+      prompt,
+      { inlineData: { data: image, mimeType: 'image/png' } },
+    ]);
+    let measure_value = Math.floor(Number(generateContent.response.text()));
+    if (isNaN(measure_value)) measure_value = 0;
+    console.log(generateContent.response.text());
+    return { image_url: '', measure_value } as Measure;
   }
 
   public async create(
